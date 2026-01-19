@@ -45,4 +45,9 @@ public class Contact {
         inverseJoinColumns = @JoinColumn(name = "groupe_id")
     )
     private Set<Groupe> groupes = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(name = "contact_tags", joinColumns = @JoinColumn(name = "contact_id"))
+    @Column(name="tag_name")
+    private Set<String> tags = new HashSet<>();
 }

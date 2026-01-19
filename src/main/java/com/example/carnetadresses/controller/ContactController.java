@@ -133,4 +133,21 @@ public class ContactController {
         return ResponseEntity.ok("Photo uploadée : " + filename);
     }
 
+    @GetMapping
+    public List<Contact> getAllMyContacts(
+        @RequestParam(required = false) String keyword,
+        @RequestParam(required = false) String tag
+    ){
+        User user= getAuthenticatedUser();
+
+        if(tag != null && !tag.isEmpty()){
+            return contactService.getContactsByTag(user, tag);
+        }
+
+        if(keyword != null && !keyword.isEmpty()){
+            return contactService.searchMyContacts(user, keyword);
+        }
+
+        return contactService.getMyContacts(user);
+    }
 }

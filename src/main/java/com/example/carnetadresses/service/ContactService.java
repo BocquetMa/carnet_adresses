@@ -125,4 +125,20 @@ public class ContactService {
     public List<Contact> getContactsByTag(User user, String tag){
         return contactRepository.findByOwnerAndTag(user, tag);
     }
+
+    public Contact toggleConfidentialite(Long id, User user){
+        Contact contact = contactRepository.findById(id)
+            .filter(c -> c.getOwner().equals(user))
+            .orElseThrow(() -> new RuntimeException("Contact non trouvé"));
+
+        contact.setPrivate(!contact.isPrivate());
+        return contactRepository.save(contact);
+    }
+
+    public List<Contact> getContactsFiltres(User user, boolean voirPrivé){
+        if(voirPrivé){
+            return contactRepository.findByOwnerAndDeletedAtIsNull(user);
+        }
+        return contactRepository.findByOwnerAndDeletedAtIsNullAndIsPrivateFalse(user);
+    }
 }

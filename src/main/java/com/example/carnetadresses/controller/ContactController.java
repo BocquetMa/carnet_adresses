@@ -158,7 +158,7 @@ public class ContactController {
             User user = getAuthenticatedUser();
 
             if (tag != null && !tag.isEmpty()) {
-                return contactService.getContactsById(user, tag).stream()
+                return contactService.getContactsByTag(user, tag).stream()
                     .filter(c -> hidden || !c.isPrivate())
                     .toList();
             }

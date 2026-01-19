@@ -52,4 +52,24 @@ public class ContactService {
         contact.setDeletedAt(LocalDateTime.now());
         contactRepository.save(contact);
     }
+
+        public String exportContactsToCsv(List<Contact> contacts) {        StringBuilder csvContent = new StringBuilder();
+
+        csvContent.append("Nom, Prénom, Email, Téléphone, Entreprise\n");
+        for (Contact contact: contacts){
+            csvContent.append(contact.getName()).append(",")
+                    .append(contact.getFirstName() != null ? contact.getFirstName() : "").append(",")
+                    .append(contact.getEmail()).append(",")
+                    .append(contact.getPhone() != null ? contact.getPhone(): "").append(",")
+                    .append(contact.getCompany() != null ? contact.getCompany() : "").append("\n");
+
+        }
+        return csvContent.toString();
+    }
+
+    public List<Contact> getAllContactsForAdmin(){
+        return contactRepository.findAll().stream()
+            .filter(c -> c.getDeletedAt() == null)
+            .toList();
+    }
 }

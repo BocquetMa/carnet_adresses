@@ -61,4 +61,24 @@ public class ContactController {
         contactService.deleteContact(id, user);
         return ResponseEntity.ok().body("Contact supprimé avec succès");
     }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportCsv() {
+        User user = getAuthenticatedUser();
+        List<Contact> contacts;
+
+        if ("ROLE_ADMIN".equals(user.getRole())) {
+            contacts = contactService.getAllContactsForAdmin();
+        } else {
+            contacts = contactService.getMyContacts(user);
+        }
+
+        String csvData = contactService.exportContactsToCsv(contacts);
+        byte[] csvBytes = csvData.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=contacts_export.csv")
+                .header("Content-Type", "text/csv; charset=UTF-8")
+                .body(csvBytes);
+    }
 }

@@ -32,6 +32,8 @@ public class Contact {
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime deletedAt; 
 
+    private String photoUrl;
+    
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User owner; 

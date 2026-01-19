@@ -1,0 +1,64 @@
+package com.example.carnetadresses.controller;
+
+import com.example.carnetadresses.model.Contact;
+import com.example.carnetadresses.model.User;
+import com.example.carnetadresses.repository.UserRepository;
+import com.example.carnetadresses.service.ContactService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/contacts")
+public class ContactController {
+
+    @Autowired
+    private ContactService contactService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private User getAuthenticatedUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return userRepository.findByUsername(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+    }
+
+    @GetMapping
+    public List<Contact> getAllMyContacts(@RequestParam(required = false) String keyword) {
+        User user = getAuthenticatedUser();
+        if (keyword != null && !keyword.isEmpty()) {
+            return contactService.searchMyContacts(user, keyword);
+        }
+        return contactService.getMyContacts(user);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Contact> getContactById(@PathVariable Long id) {
+        User user = getAuthenticatedUser();
+        return ResponseEntity.ok(contactService.updateContact(id, new Contact(), user)); 
+    }
+
+    @PostMapping
+    public Contact createContact(@RequestBody Contact contact) {
+        User user = getAuthenticatedUser();
+        return contactService.createContact(contact, user);
+    }
+
+    @PutMapping("/{id}")
+    public Contact updateContact(@PathVariable Long id, @RequestBody Contact contactDetails) {
+        User user = getAuthenticatedUser();
+        return contactService.updateContact(id, contactDetails, user);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteContact(@PathVariable Long id) {
+        User user = getAuthenticatedUser();
+        contactService.deleteContact(id, user);
+        return ResponseEntity.ok().body("Contact supprimé avec succès");
+    }
+}

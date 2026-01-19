@@ -1,0 +1,36 @@
+package com.example.carnetadresses.model;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "contacts")
+@Getter @Setter
+public class Contact {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank(message = "Le nom est obligatoire")
+    private String name;
+
+    private String firstName;
+
+    @Email(message = "Email invalide")
+    @NotBlank(message = "L'email est obligatoire")
+    private String email;
+
+    private String phone;
+    private String company;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime deletedAt; 
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User owner; 
+}

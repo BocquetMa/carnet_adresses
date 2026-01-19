@@ -121,4 +121,8 @@ public class ContactService {
             contact.setDeletedAt(null);
             return contactRepository.save(contact);
     }
+
+    public List<Contact> getContactsByTag(User user, String tag){
+        return contactRepository.findByOwnerAndTag(user, tag);
+    }
 }

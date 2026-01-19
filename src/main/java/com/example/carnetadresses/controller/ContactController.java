@@ -2,7 +2,9 @@ package com.example.carnetadresses.controller;
 
 import com.example.carnetadresses.model.Contact;
 import com.example.carnetadresses.model.User;
+import com.example.carnetadresses.repository.ContactRepository;
 import com.example.carnetadresses.repository.UserRepository;
+import com.example.carnetadresses.service.FileStorageService;
 import com.example.carnetadresses.service.ContactService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,13 @@ public class ContactController {
 
     @Autowired
     private UserRepository userRepository;
+
+    
+    @Autowired
+    private ContactRepository contactRepository;
+
+    @Autowired 
+    private FileStorageService fileStorageService;
 
     private User getAuthenticatedUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -108,4 +117,20 @@ public class ContactController {
         Contact restored = contactService.restaurerContact(id, getAuthenticatedUser());
         return ResponseEntity.ok(restored);
     }
+
+    @PostMapping("/{id}/photo")
+    public ResponseEntity<String> uploadPhoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        String filename = fileStorageService.save(file);
+        
+        User user = getAuthenticatedUser();
+        Contact contact = contactRepository.findById(id)
+                .filter(c -> c.getOwner().equals(user))
+                .orElseThrow(() -> new RuntimeException("Contact non trouvé"));
+                
+        contact.setPhotoUrl(filename);
+        contactRepository.save(contact);
+        
+        return ResponseEntity.ok("Photo uploadée : " + filename);
+    }
+
 }

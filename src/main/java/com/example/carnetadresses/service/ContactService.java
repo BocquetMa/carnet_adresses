@@ -5,7 +5,11 @@ import com.example.carnetadresses.model.User;
 import com.example.carnetadresses.repository.ContactRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -71,5 +75,35 @@ public class ContactService {
         return contactRepository.findAll().stream()
             .filter(c -> c.getDeletedAt() == null)
             .toList();
+    }
+
+    public void ImportContactsFromCsv(MultipartFile file, User user) throws Exception{
+        try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            boolean isFirstLine = true;
+
+            while((line = fileReader.readLine()) != null){
+                if(isFirstLine){
+                    isFirstLine = false;
+                    continue;
+                }
+
+                String[] data = line.split(",");
+
+                if (data.length >= 3 && !data[0].isBlank() && !data[2].isBlank()) {
+                Contact contact = new Contact();
+                contact.setName(data[0].trim());
+                contact.setFirstName(data[1].trim());
+                contact.setEmail(data[2].trim());
+                if (data.length >= 4) contact.setPhone(data[3].trim());
+                if (data.length >= 5) contact.setCompany(data[4].trim());
+                
+                contact.setOwner(user);
+                contact.setCreatedAt(LocalDateTime.now());
+                
+                contactRepository.save(contact);
+            }
+            }
+        }
     }
 }

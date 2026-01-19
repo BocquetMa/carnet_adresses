@@ -97,4 +97,15 @@ public class ContactController {
 
         }
     }
+
+    @GetMapping("/corbeille")
+    public List<Contact> getCorbeille(){
+        return contactService.getMaCorbeille(getAuthenticatedUser());
+    }
+
+    @PutMapping("/{id}/restaurer")
+    public ResponseEntity<Contact> restaurer(@PathVariable Long id){
+        Contact restored = contactService.restaurerContact(id, getAuthenticatedUser());
+        return ResponseEntity.ok(restored);
+    }
 }

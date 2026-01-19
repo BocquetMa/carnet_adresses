@@ -106,4 +106,19 @@ public class ContactService {
             }
         }
     }
+
+    public List<Contact> getMaCorbeille(User user){
+        return contactRepository.findAll().stream()
+            .filter(c -> c.getOwner().equals(user) && c.getDeletedAt() != null)
+            .toList();
+    }
+
+    public Contact restaurerContact(Long id, User user){
+        Contact contact = contactRepository.findById(id)
+            .filter(c -> c.getOwner().equals(user))
+            .orElseThrow(() -> new RuntimeException("contact non trouvé"));
+
+            contact.setDeletedAt(null);
+            return contactRepository.save(contact);
+    }
 }

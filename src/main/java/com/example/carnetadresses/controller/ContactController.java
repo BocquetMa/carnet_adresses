@@ -150,4 +150,25 @@ public class ContactController {
 
         return contactService.getMyContacts(user);
     }
+
+    @GetMapping
+    public List<Contact> getAll(
+        @RequestParam(required = false) String tag,
+        @RequestParam(defaultValue = "false") boolean hidden) {
+            User user = getAuthenticatedUser();
+
+            if (tag != null && !tag.isEmpty()) {
+                return contactService.getContactsById(user, tag).stream()
+                    .filter(c -> hidden || !c.isPrivate())
+                    .toList();
+            }
+            return contactService.getContactsFiltres(user, hidden);
+        }
+
+    @PatchMapping("/{id}/toggle-private")
+    public ResponseEntity<Contact> togglePrivate(@PathVariable Long id){
+        Contact updated = contactService.toggleConfidentialite(id, getAuthenticatedUser());
+        return ResponseEntity.ok(updated);
+    }
+    
 }

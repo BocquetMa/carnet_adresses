@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -80,5 +81,20 @@ public class ContactController {
                 .header("Content-Disposition", "attachment; filename=contacts_export.csv")
                 .header("Content-Type", "text/csv; charset=UTF-8")
                 .body(csvBytes);
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<String> importCsv(@RequestParam("file") MultipartFile file){
+        if(file.isEmpty()){
+            return ResponseEntity.badRequest().body("veuillez sélectionner un fichier csv");
+        }
+        try {
+            User user = getAuthenticatedUser();
+            contactService.ImportContactsFromCsv(file, user);
+            return ResponseEntity.ok("importation réussi");
+        } catch(Exception e) {
+            return ResponseEntity.status(500).body("Erreur lors de l'import : " + e.getMessage());
+
+        }
     }
 }

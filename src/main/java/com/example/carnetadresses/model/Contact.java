@@ -36,6 +36,10 @@ public class Contact {
 
     private String photoUrl;
     
+    private String linkedinUrl;
+    private String twitterUrl;
+    private String githubUrl;
+    
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User owner; 

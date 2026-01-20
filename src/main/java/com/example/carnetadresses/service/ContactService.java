@@ -141,4 +141,16 @@ public class ContactService {
         }
         return contactRepository.findByOwnerAndDeletedAtIsNullAndIsPrivateFalse(user);
     }
+
+    public Contact updateContactSocial(Long id, Contact socialData, User user){
+        Contact contact = contactRepository.findById(id)
+            .filter(c -> c.getOwner().equals(user))
+            .orElseThrow(() -> new RuntimeException("contact non trouvé"));
+     
+        contact.setLinkedinUrl(socialData.getLinkedinUrl());
+        contact.setTwitterUrl(socialData.getTwitterUrl());
+        contact.setGithubUrl(socialData.getGithubUrl());
+
+        return contactRepository.save(contact);
+    }
 }

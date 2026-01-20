@@ -171,4 +171,9 @@ public class ContactController {
         return ResponseEntity.ok(updated);
     }
     
+    @PatchMapping("/{id}/social")
+    public ResponseEntity<Contact> updateSocialLinks(@PathVariable Long id, @RequestBody Contact socialData){
+        Contact updated = contactService.updateContactSocial(id, socialData, getAuthenticatedUser());
+        return ResponseEntity.ok(updated);
+    }
 }

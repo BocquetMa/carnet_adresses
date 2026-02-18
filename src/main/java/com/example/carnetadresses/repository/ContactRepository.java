@@ -16,7 +16,7 @@ public interface ContactRepository extends JpaRepository<Contact, Long> {
     
     List<Contact> findByDeletedAtIsNotNull();
 
-    @Query("select c from Contact c join c.tags t where c.owner = :owner and c.deleteAt is null and t = :tag")
+    @Query("select c from Contact c join c.tags t where c.owner = :owner and c.deletedAt is null and t = :tag")
     List<Contact> findByOwnerAndTag(User owner, String tag);
 
     List<Contact> findByOwnerAndDeletedAtIsNullAndIsPrivateFalse(User owner);

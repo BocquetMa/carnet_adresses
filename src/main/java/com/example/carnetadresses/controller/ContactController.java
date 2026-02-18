@@ -25,11 +25,10 @@ public class ContactController {
     @Autowired
     private UserRepository userRepository;
 
-    
     @Autowired
     private ContactRepository contactRepository;
 
-    @Autowired 
+    @Autowired
     private FileStorageService fileStorageService;
 
     private User getAuthenticatedUser() {
@@ -39,18 +38,30 @@ public class ContactController {
     }
 
     @GetMapping
-    public List<Contact> getAllMyContacts(@RequestParam(required = false) String keyword) {
+    public List<Contact> getAllMyContacts(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String tag,
+            @RequestParam(defaultValue = "false") boolean hidden
+    ) {
         User user = getAuthenticatedUser();
+
+        if (tag != null && !tag.isEmpty()) {
+            return contactService.getContactsByTag(user, tag).stream()
+                    .filter(c -> hidden || !c.isPrivate())
+                    .toList();
+        }
+
         if (keyword != null && !keyword.isEmpty()) {
             return contactService.searchMyContacts(user, keyword);
         }
-        return contactService.getMyContacts(user);
+
+        return contactService.getContactsFiltres(user, hidden);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Contact> getContactById(@PathVariable Long id) {
         User user = getAuthenticatedUser();
-        return ResponseEntity.ok(contactService.updateContact(id, new Contact(), user)); 
+        return ResponseEntity.ok(contactService.updateContact(id, new Contact(), user));
     }
 
     @PostMapping
@@ -93,27 +104,26 @@ public class ContactController {
     }
 
     @PostMapping("/import")
-    public ResponseEntity<String> importCsv(@RequestParam("file") MultipartFile file){
-        if(file.isEmpty()){
-            return ResponseEntity.badRequest().body("veuillez sélectionner un fichier csv");
+    public ResponseEntity<String> importCsv(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("Veuillez sélectionner un fichier CSV");
         }
         try {
             User user = getAuthenticatedUser();
             contactService.ImportContactsFromCsv(file, user);
-            return ResponseEntity.ok("importation réussi");
-        } catch(Exception e) {
+            return ResponseEntity.ok("Importation réussie");
+        } catch (Exception e) {
             return ResponseEntity.status(500).body("Erreur lors de l'import : " + e.getMessage());
-
         }
     }
 
     @GetMapping("/corbeille")
-    public List<Contact> getCorbeille(){
+    public List<Contact> getCorbeille() {
         return contactService.getMaCorbeille(getAuthenticatedUser());
     }
 
     @PutMapping("/{id}/restaurer")
-    public ResponseEntity<Contact> restaurer(@PathVariable Long id){
+    public ResponseEntity<Contact> restaurer(@PathVariable Long id) {
         Contact restored = contactService.restaurerContact(id, getAuthenticatedUser());
         return ResponseEntity.ok(restored);
     }
@@ -121,58 +131,26 @@ public class ContactController {
     @PostMapping("/{id}/photo")
     public ResponseEntity<String> uploadPhoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         String filename = fileStorageService.save(file);
-        
+
         User user = getAuthenticatedUser();
         Contact contact = contactRepository.findById(id)
                 .filter(c -> c.getOwner().equals(user))
                 .orElseThrow(() -> new RuntimeException("Contact non trouvé"));
-                
+
         contact.setPhotoUrl(filename);
         contactRepository.save(contact);
-        
+
         return ResponseEntity.ok("Photo uploadée : " + filename);
     }
 
-    @GetMapping
-    public List<Contact> getAllMyContacts(
-        @RequestParam(required = false) String keyword,
-        @RequestParam(required = false) String tag
-    ){
-        User user= getAuthenticatedUser();
-
-        if(tag != null && !tag.isEmpty()){
-            return contactService.getContactsByTag(user, tag);
-        }
-
-        if(keyword != null && !keyword.isEmpty()){
-            return contactService.searchMyContacts(user, keyword);
-        }
-
-        return contactService.getMyContacts(user);
-    }
-
-    @GetMapping
-    public List<Contact> getAll(
-        @RequestParam(required = false) String tag,
-        @RequestParam(defaultValue = "false") boolean hidden) {
-            User user = getAuthenticatedUser();
-
-            if (tag != null && !tag.isEmpty()) {
-                return contactService.getContactsByTag(user, tag).stream()
-                    .filter(c -> hidden || !c.isPrivate())
-                    .toList();
-            }
-            return contactService.getContactsFiltres(user, hidden);
-        }
-
     @PatchMapping("/{id}/toggle-private")
-    public ResponseEntity<Contact> togglePrivate(@PathVariable Long id){
+    public ResponseEntity<Contact> togglePrivate(@PathVariable Long id) {
         Contact updated = contactService.toggleConfidentialite(id, getAuthenticatedUser());
         return ResponseEntity.ok(updated);
     }
-    
+
     @PatchMapping("/{id}/social")
-    public ResponseEntity<Contact> updateSocialLinks(@PathVariable Long id, @RequestBody Contact socialData){
+    public ResponseEntity<Contact> updateSocialLinks(@PathVariable Long id, @RequestBody Contact socialData) {
         Contact updated = contactService.updateContactSocial(id, socialData, getAuthenticatedUser());
         return ResponseEntity.ok(updated);
     }
